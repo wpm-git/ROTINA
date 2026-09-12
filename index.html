@@ -852,6 +852,64 @@ body{
   .mobile-file-input{font-size:11px!important}
 }
 
+
+/* NAVEGAÇÃO SEMANAL — permite abrir qualquer dia no celular */
+.premium-days{
+  display:flex!important;
+  gap:7px!important;
+  overflow-x:auto!important;
+  padding:10px 14px 8px!important;
+  margin:0!important;
+  scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;
+  scroll-snap-type:x proximity;
+}
+.premium-days::-webkit-scrollbar{display:none}
+.premium-days button{
+  flex:0 0 48px!important;
+  min-width:48px!important;
+  height:58px!important;
+  padding:6px 3px!important;
+  border-radius:16px!important;
+  scroll-snap-align:center;
+  background:rgba(225,243,255,.72)!important;
+  border:1px solid rgba(255,255,255,.88)!important;
+  color:#315f83!important;
+  font-size:0!important;
+  box-shadow:0 6px 14px rgba(9,69,111,.08)!important;
+}
+.premium-days button::before{
+  content:attr(data-short);
+  display:block;
+  font-size:11px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.2px;
+}
+.premium-days button::after{
+  content:attr(data-date);
+  display:block;
+  margin-top:4px;
+  font-size:15px;
+  font-weight:850;
+}
+.premium-days button.active{
+  color:#fff!important;
+  background:linear-gradient(160deg,#168fff,#0869d5)!important;
+  border-color:rgba(255,255,255,.92)!important;
+  box-shadow:0 9px 20px rgba(6,102,204,.27)!important;
+  transform:translateY(-1px);
+}
+.week-nav-caption{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 17px 0;color:#244f72
+}
+.week-nav-caption b{font-size:13px}
+.week-nav-caption button{
+  border:0;background:rgba(235,248,255,.75);color:#0a6fd8;
+  border-radius:10px;padding:7px 10px;font-size:10px;font-weight:800
+}
+
 </style>
 </head>
 <body>
@@ -1313,9 +1371,17 @@ function renderDaybar(){
   daybar.innerHTML='';
   DAYS.forEach(d=>{
     const b=document.createElement('button');
+    const dd=dayDate(d.key);
     b.textContent=d.name;
+    b.dataset.short=d.name.slice(0,3);
+    b.dataset.date=String(dd.getDate()).padStart(2,'0');
+    b.title=d.name+' '+dd.toLocaleDateString('pt-BR');
     if(d.key===selectedDay)b.classList.add('active');
-    b.onclick=()=>{selectedDay=d.key;render()};
+    b.onclick=()=>{
+      selectedDay=d.key;
+      render();
+      setTimeout(()=>b.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'}),30);
+    };
     daybar.appendChild(b);
   });
 }
@@ -2015,6 +2081,18 @@ render();
 refreshPremiumUI();
 const savedPage=localStorage.getItem('rotina.page');
 if(savedPage && document.getElementById(savedPage)) showPage(savedPage);
+
+document.addEventListener('click',function(e){
+  if(e.target && e.target.id==='goTodayBtn'){
+    selectedDay=keyFromDate(new Date());
+    render();
+    setTimeout(()=>{
+      const a=document.querySelector('#daybar button.active');
+      if(a)a.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'});
+    },30);
+  }
+});
+
 </script>
 </body>
 </html>
