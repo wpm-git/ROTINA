@@ -1164,46 +1164,46 @@ const DAYS = [
 const DEFAULT_PLAN = {
  seg:[
   ['05:10–07:10','Estudo','Estudo',120],
-  ['07:20–07:50','Leitura','Estudo',30],
+  ['07:20–07:50','Treino Nala','Treino Nala',30],
   ['Durante o trabalho','Barra fixa + paralelas','Calistenia',10],
   ['12:30–13:30','Estudo','Estudo',60],
   ['18:10–18:40','Corrida leve 3–4 km','Corrida',30],
   ['18:45–20:15','Estudo','Estudo',90],
-  ['20:30–21:30','Jiu-jitsu','Jiu-jitsu',60],
-  ['21:35–22:05','Revisão / questões','Estudo',30]
+  ['20:30–22:00','Jiu-jitsu','Jiu-jitsu',90],
+  ['22:30–23:00','Leitura','Estudo',30]
  ],
  ter:[
   ['05:10–07:10','Estudo','Estudo',120],
-  ['07:20–07:50','Leitura','Estudo',30],
+  ['07:20–07:50','Treino Nala','Treino Nala',30],
   ['12:30–13:30','Estudo','Estudo',60],
   ['18:10–18:45','Treino de velocidade','Corrida',35],
   ['18:45–19:00','Escada','Escada',15],
   ['19:05–20:15','Estudo','Estudo',70],
-  ['20:30–21:30','Jiu-jitsu','Jiu-jitsu',60],
-  ['21:35–22:25','Estudo / revisão','Estudo',50]
+  ['20:30–22:00','Jiu-jitsu','Jiu-jitsu',90],
+  ['22:30–23:00','Leitura','Estudo',30]
  ],
  qua:[
   ['05:10–07:10','Estudo','Estudo',120],
-  ['07:20–07:50','Leitura','Estudo',30],
+  ['07:20–07:50','Treino Nala','Treino Nala',30],
   ['Manhã','Barra fixa - 3 séries','Calistenia',10],
   ['Tarde','Paralelas + agachamento','Calistenia',10],
   ['12:30–13:30','Estudo','Estudo',60],
   ['18:15–20:15','Estudo','Estudo',120],
-  ['20:30–21:30','Jiu-jitsu','Jiu-jitsu',60]
+  ['20:30–22:00','Jiu-jitsu','Jiu-jitsu',90]
  ],
  qui:[
   ['05:10–07:10','Estudo','Estudo',120],
-  ['07:20–07:50','Leitura','Estudo',30],
+  ['07:20–07:50','Treino Nala','Treino Nala',30],
   ['Durante o trabalho','Barras leves','Calistenia',8],
   ['12:30–13:30','Estudo','Estudo',60],
   ['18:10–18:50','Corrida específica 2.400 m','Corrida',40],
   ['19:00–20:15','Estudo','Estudo',75],
-  ['20:30–21:30','Jiu-jitsu','Jiu-jitsu',60],
-  ['21:35–22:20','Revisão','Estudo',45]
+  ['20:30–22:00','Jiu-jitsu','Jiu-jitsu',90],
+  ['22:30–23:00','Leitura','Estudo',30]
  ],
  sex:[
   ['05:10–07:10','Estudo','Estudo',120],
-  ['07:20–07:50','Leitura','Estudo',30],
+  ['07:20–07:50','Treino Nala','Treino Nala',30],
   ['Durante o trabalho','Barra + paralelas + flexões','Calistenia',10],
   ['12:30–13:30','Estudo','Estudo',60],
   ['18:15–20:15','Estudo','Estudo',120],
@@ -1228,6 +1228,18 @@ const DEFAULT_PLAN = {
 };
 
 const clone = o => JSON.parse(JSON.stringify(o));
+
+const ROUTINE_SCHEDULE_VERSION='2026-09-12-nala-bjj-reading-v1';
+(function migrateRoutineSchedule(){
+  const versionKey='rotina.schedule.version';
+  if(localStorage.getItem(versionKey)===ROUTINE_SCHEDULE_VERSION)return;
+  /* Apply the new planner as the current routine. Logs/history remain untouched. */
+  try{
+    localStorage.setItem('rotina.plan',JSON.stringify(DEFAULT_PLAN));
+    localStorage.setItem(versionKey,ROUTINE_SCHEDULE_VERSION);
+  }catch(e){}
+})();
+
 let plan = JSON.parse(localStorage.getItem('rotina.plan') || 'null') || clone(DEFAULT_PLAN);
 let selectedDay = keyFromDate(new Date());
 
@@ -1786,7 +1798,7 @@ resetBtn.onclick=()=>{
 
 
 const IMAGE_DB='rotina.images.v1';
-const DEFAULT_ACTIVITY_IMAGE_CATEGORIES=['Estudo','Jiu-jitsu','Calistenia','Corrida','Escada','Pedal'];
+const DEFAULT_ACTIVITY_IMAGE_CATEGORIES=['Estudo','Jiu-jitsu','Calistenia','Corrida','Escada','Pedal','Treino Nala'];
 
 function imageStore(){
   try{return JSON.parse(localStorage.getItem(IMAGE_DB)||'{}')}catch(e){return {}}
