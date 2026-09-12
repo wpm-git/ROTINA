@@ -822,6 +822,32 @@ body{
 .image-setting.activity-setting .image-remove{grid-column:3}
 .profile-avatar.has-custom-photo{background-size:cover!important;background-position:center!important}
 
+
+/* MOBILE IMAGE PICKER — visível e tocável no celular */
+#profileImages{padding-bottom:18px}
+#profileImages .visual-customizer{margin-top:0;padding-top:0;border-top:0}
+#profileImages .image-setting{grid-template-columns:1fr!important;gap:8px!important;padding:14px 0!important}
+#profileImages .image-setting.activity-setting{grid-template-columns:48px 1fr!important}
+#profileImages .image-setting.activity-setting .mobile-file-input,
+#profileImages .image-setting.activity-setting .image-remove{grid-column:1 / -1!important}
+.mobile-file-row{width:100%}
+.mobile-file-input{
+  display:block!important;width:100%!important;max-width:100%!important;box-sizing:border-box!important;
+  padding:10px!important;border:1px solid rgba(70,145,198,.28)!important;border-radius:12px!important;
+  background:rgba(255,255,255,.92)!important;color:#163d61!important;font-size:12px!important;
+}
+.mobile-file-input::file-selector-button{
+  border:0;border-radius:9px;padding:8px 10px;margin-right:9px;
+  background:linear-gradient(135deg,#0c75e6,#168fff);color:white;font-weight:700;
+}
+#profileImages .image-remove{grid-column:1!important;justify-self:start}
+.profile-tabs{overflow-x:auto!important;justify-content:flex-start!important}
+.profile-tabs button{flex:0 0 auto!important;min-width:88px!important}
+@media(max-width:480px){
+  #profileImages{margin-left:8px!important;margin-right:8px!important}
+  .mobile-file-input{font-size:11px!important}
+}
+
 </style>
 </head>
 <body>
@@ -995,6 +1021,7 @@ body{
     <div class="profile-tabs">
       <button class="active" data-profile-tab="profileData">Meus dados</button>
       <button data-profile-tab="profileHealth">Peso & IMC</button>
+      <button data-profile-tab="profileImages">Imagens</button>
       <button data-profile-tab="profileSettings">Configurações</button>
     </div>
 
@@ -1053,7 +1080,40 @@ body{
       </div>
     </section>
 
-    <section class="card-clean profile-panel" id="profileSettings">
+    
+    <section class="card-clean profile-panel" id="profileImages">
+      <div class="visual-customizer">
+  <h3>Personalização visual</h3>
+  <p class="small">Escolha suas próprias imagens. Elas ficam salvas neste aparelho e também entram no backup.</p>
+
+  <div class="image-setting">
+    <div><b>Foto do perfil</b><small>Imagem circular exibida no Perfil.</small></div>
+    <div class="mobile-file-row"><input id="profilePhotoInput" class="mobile-file-input" type="file" accept="image/*"></div>
+    <button type="button" class="image-remove" data-remove-image="profile">Remover</button>
+  </div>
+
+  <div class="image-setting">
+    <div><b>Fundo do topo</b><small>Imagem atrás de “Bom dia”.</small></div>
+    <div class="mobile-file-row"><input id="heroPhotoInput" class="mobile-file-input" type="file" accept="image/*"></div>
+    <button type="button" class="image-remove" data-remove-image="hero">Padrão</button>
+  </div>
+
+  
+<div class="image-setting">
+  <div><b>Imagem de baixo</b><small>Fundo do card inferior/motivacional.</small></div>
+  <div class="mobile-file-row"><input id="bottomPhotoInput" class="mobile-file-input" type="file" accept="image/*"></div>
+  <button type="button" class="image-remove" data-remove-image="bottom">Padrão</button>
+</div>
+
+<h4>Imagens das atividades</h4>
+
+  <div id="activityImageSettings"></div>
+</div>
+
+      
+    </section>
+
+<section class="card-clean profile-panel" id="profileSettings">
       <h3>Configurações</h3>
       <p class="small">Personalize sua rotina e mantenha seus dados seguros.</p>
 
@@ -1076,35 +1136,7 @@ body{
       </button>
 
       
-<div class="visual-customizer">
-  <h3>Personalização visual</h3>
-  <p class="small">Escolha suas próprias imagens. Elas ficam salvas neste aparelho e também entram no backup.</p>
-
-  <div class="image-setting">
-    <div><b>Foto do perfil</b><small>Imagem circular exibida no Perfil.</small></div>
-    <label class="image-pick">Escolher foto<input id="profilePhotoInput" type="file" accept="image/*"></label>
-    <button type="button" class="image-remove" data-remove-image="profile">Remover</button>
-  </div>
-
-  <div class="image-setting">
-    <div><b>Fundo do topo</b><small>Imagem atrás de “Bom dia”.</small></div>
-    <label class="image-pick">Escolher imagem<input id="heroPhotoInput" type="file" accept="image/*"></label>
-    <button type="button" class="image-remove" data-remove-image="hero">Padrão</button>
-  </div>
-
-  
-<div class="image-setting">
-  <div><b>Imagem de baixo</b><small>Fundo do card inferior/motivacional.</small></div>
-  <label class="image-pick">Escolher imagem<input id="bottomPhotoInput" type="file" accept="image/*"></label>
-  <button type="button" class="image-remove" data-remove-image="bottom">Padrão</button>
-</div>
-
-<h4>Imagens das atividades</h4>
-
-  <div id="activityImageSettings"></div>
-</div>
-
-      <input id="backupFileInput" type="file" accept=".json,application/json" style="display:none">
+<input id="backupFileInput" type="file" accept=".json,application/json" style="display:none">
       <div class="backup-info" id="backupStatus">
         <b>Backup e sincronização</b>
         <div class="small">Exporte no aparelho antigo e restaure no novo.</div>
@@ -1532,6 +1564,7 @@ document.querySelectorAll('.profile-tabs button').forEach(btn=>{
     document.querySelectorAll('.profile-tabs button').forEach(b=>b.classList.toggle('active',b===btn));
     document.querySelectorAll('.profile-panel').forEach(p=>p.classList.toggle('active',p.id===btn.dataset.profileTab));
     if(btn.dataset.profileTab==='profileHealth') renderHealth();
+    if(btn.dataset.profileTab==='profileImages'){ renderActivityImageSettings(); applyCustomImages(); }
   };
 });
 
@@ -1911,7 +1944,7 @@ function renderActivityImageSettings(){
     return `<div class="image-setting activity-setting">
       ${preview}
       <div><b>${cat}</b><small>Imagem de fundo dos cartões desta categoria.</small></div>
-      <label class="image-pick">Escolher<input type="file" accept="image/*" data-activity-image="${cat}"></label>
+      <input class="mobile-file-input activity-file-input" type="file" accept="image/*" data-activity-image="${cat}">
       <button type="button" class="image-remove" data-remove-image="${key}">Padrão</button>
     </div>`;
   }).join('');
