@@ -1,0 +1,1154 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rotina Semanal</title>
+<style>
+  :root{
+    --bg:#f4f5f7; --card:#fff; --line:#d9dde3; --text:#1f2937;
+    --muted:#6b7280; --accent:#1f5f46; --danger:#a33;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text);padding-bottom:76px}
+  header{background:#fff;border-bottom:1px solid var(--line);padding:14px 18px;position:sticky;top:0;z-index:5}
+  .app-page{display:none}
+  .app-page.active{display:block}
+  .bottom-nav{
+    position:fixed;left:0;right:0;bottom:0;z-index:20;
+    display:grid;grid-template-columns:repeat(4,1fr);
+    background:#fff;border-top:1px solid var(--line);
+    padding:7px 6px max(7px,env(safe-area-inset-bottom));
+  }
+  .bottom-nav button{
+    border:0;background:transparent;border-radius:8px;padding:7px 4px;
+    display:flex;flex-direction:column;align-items:center;gap:3px;
+    font-size:11px;color:var(--muted)
+  }
+  .bottom-nav button.active{color:var(--accent);font-weight:700;background:#eef6f1}
+  .nav-icon{font-size:20px;line-height:1}
+  .profile-field{margin:12px 0}
+  .profile-field label{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
+  .profile-field input{width:100%;padding:10px;border:1px solid var(--line);border-radius:8px}
+  .profile-box{max-width:650px;margin:auto}
+  .profile-name{font-size:24px;font-weight:700;margin:2px 0 4px}
+  .profile-avatar{
+    width:66px;height:66px;border-radius:50%;background:#e9f3ee;
+    display:flex;align-items:center;justify-content:center;font-size:26px;
+    margin-bottom:10px
+  }
+  .profile-tabs{display:flex;gap:6px;margin:16px 0;overflow:auto}
+  .profile-tabs button{white-space:nowrap;flex:1}
+  .profile-tabs button.active{background:#e9f3ee;border-color:#7aaa94;font-weight:700}
+  .profile-panel{display:none}.profile-panel.active{display:block}
+  .health-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .bmi-result{font-size:30px;font-weight:700;margin:8px 0 2px}
+  .bmi-scale{position:relative;height:22px;border-radius:999px;margin:18px 0 8px;
+    background:linear-gradient(90deg,#dce9f7 0 20%,#dcefdc 20% 45%,#f3e8b6 45% 68%,#efd0c8 68% 100%)}
+  .bmi-pointer{position:absolute;top:-8px;width:3px;height:38px;background:#222;left:0}
+  .bmi-pointer:before{content:"";position:absolute;top:-2px;left:-5px;border-left:6px solid transparent;border-right:6px solid transparent;border-top:7px solid #222}
+  .bmi-labels{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;font-size:10px;text-align:center;color:var(--muted)}
+  .weight-chart-wrap{width:100%;overflow:hidden;margin-top:14px}
+  .weight-chart-svg{display:block;width:100%;height:auto;max-width:100%;overflow:visible}
+  .weight-history{margin-top:18px}
+  .weight-history{margin-top:36px}
+  .weight-history table{width:100%;border-collapse:collapse;font-size:12px}
+  .weight-history th,.weight-history td{padding:7px;border-bottom:1px solid #eee;text-align:left}
+  .backup-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+  .backup-info{margin-top:10px;padding:10px;border:1px dashed var(--line);border-radius:8px;background:#fafafa}
+  @media(max-width:500px){.health-grid{grid-template-columns:1fr 1fr}}
+  .top{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+  h1{font-size:20px;margin:0}
+  button,select,input,textarea{font:inherit}
+  button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:9px 12px;cursor:pointer}
+  button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  button.danger{color:var(--danger)}
+  .wrap{max-width:1100px;margin:18px auto;padding:0 14px 40px}
+  .daybar{display:flex;gap:7px;overflow:auto;padding-bottom:8px}
+  .daybar button.active{background:#e9f3ee;border-color:#7aaa94;font-weight:700}
+  .grid{display:grid;grid-template-columns:1fr 330px;gap:16px;margin-top:12px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px}
+  .task{display:grid;grid-template-columns:26px 95px 1fr 90px;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid #eee}
+  .task:last-child{border-bottom:0}
+  .task.done .name{text-decoration:line-through;color:var(--muted)}
+  .time{font-weight:700;font-size:13px}
+  .name{font-weight:700}
+  .cat{font-size:12px;color:var(--muted);margin-top:3px}
+  .mins input{width:76px;padding:6px}
+  textarea{width:100%;min-height:78px;border:1px solid var(--line);border-radius:8px;padding:9px;resize:vertical}
+  .small{font-size:12px;color:var(--muted)}
+  .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+  .stat{border:1px solid var(--line);border-radius:8px;padding:10px}
+  .stat b{display:block;font-size:22px;margin-top:4px}
+  .barrow{margin:11px 0}
+  .barlabel{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px}
+  .track{height:12px;background:#eceff2;border-radius:999px;overflow:hidden}
+  .fill{height:100%;background:var(--accent);width:0}
+  .history{max-height:240px;overflow:auto}
+  .history table{width:100%;border-collapse:collapse;font-size:12px}
+  .history th,.history td{border-bottom:1px solid #eee;padding:7px;text-align:left}
+  .weekly-dashboard{margin-top:16px}
+  .weekly-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:12px 0 16px}
+  .weekly-card{border:1px solid var(--line);border-radius:8px;padding:12px;background:#fff}
+  .weekly-card span{display:block;font-size:12px;color:var(--muted)}
+  .weekly-card b{display:block;font-size:22px;margin-top:5px}
+  .week-progress{height:16px;background:#eceff2;border-radius:999px;overflow:hidden;margin-top:7px}
+  .week-progress > div{height:100%;background:var(--accent)}
+  .category-table{width:100%;border-collapse:collapse;font-size:13px}
+  .category-table th,.category-table td{padding:8px;border-bottom:1px solid #eee;text-align:left}
+  .category-table th:nth-child(n+2),.category-table td:nth-child(n+2){text-align:right}
+  .chart-box{margin-top:18px;border-top:1px solid var(--line);padding-top:14px}
+  .chart-legend{display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:8px 0}
+  .legend-mark{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:5px}
+  .legend-plan{background:#cfd5dc}.legend-real{background:var(--accent)}
+  .seven-chart{display:grid;grid-template-columns:repeat(7,minmax(55px,1fr));gap:10px;align-items:end;height:240px;border-bottom:1px solid var(--line);padding:20px 6px 0;overflow-x:auto}
+  .chart-day{height:100%;display:flex;flex-direction:column;justify-content:flex-end;min-width:50px}
+  .chart-bars{height:185px;display:flex;gap:5px;align-items:flex-end;justify-content:center}
+  .chart-bar{width:18px;min-height:2px;border-radius:4px 4px 0 0;position:relative}
+  .chart-bar.plan{background:#cfd5dc}.chart-bar.real{background:var(--accent)}
+  .chart-value{position:absolute;top:-17px;left:50%;transform:translateX(-50%);font-size:10px;white-space:nowrap}
+  .chart-label{text-align:center;font-size:11px;padding:7px 0 5px}
+  dialog{border:0;border-radius:12px;width:min(900px,95vw);padding:0;box-shadow:0 18px 60px #0004}
+  dialog::backdrop{background:#0006}
+  .modal-head,.modal-foot{padding:14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:10px;align-items:center}
+  .modal-foot{border-top:1px solid var(--line);border-bottom:0;justify-content:flex-end}
+  .modal-body{padding:14px;max-height:70vh;overflow:auto}
+  .edit-row{display:grid;grid-template-columns:110px 1fr 140px 90px 40px;gap:8px;margin-bottom:8px}
+  .edit-row input,.edit-row select{width:100%;padding:8px;border:1px solid var(--line);border-radius:7px}
+  .mutedbox{background:#f7f7f8;border:1px dashed var(--line);padding:10px;border-radius:8px}
+  @media(max-width:850px){
+    .weekly-grid{grid-template-columns:1fr 1fr}
+    .grid{grid-template-columns:1fr}
+    .task{grid-template-columns:26px 82px 1fr}
+    .mins{grid-column:3}
+    .edit-row{grid-template-columns:1fr 1fr}
+  }
+
+/* ===== VISUAL MOBILE GLASS — v2 ===== */
+:root{
+  --bg:#eef7ff;
+  --card:rgba(255,255,255,.62);
+  --line:rgba(88,155,210,.20);
+  --text:#16324a;
+  --muted:#6b8297;
+  --accent:#2687c8;
+  --accent2:#63b8eb;
+  --danger:#d95d6b;
+  --shadow:0 12px 34px rgba(44,112,164,.12);
+}
+html{background:#eaf5fd}
+body{
+  min-height:100vh;
+  background:
+    radial-gradient(circle at 10% 0%,rgba(112,199,244,.28),transparent 34%),
+    radial-gradient(circle at 95% 20%,rgba(119,169,241,.22),transparent 30%),
+    linear-gradient(155deg,#f8fcff 0%,#e9f6ff 48%,#f5fbff 100%);
+  color:var(--text);
+  -webkit-tap-highlight-color:transparent;
+}
+body:before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;
+  background-image:linear-gradient(rgba(255,255,255,.18) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(255,255,255,.18) 1px,transparent 1px);
+  background-size:28px 28px;
+  mask-image:linear-gradient(to bottom,black,transparent 70%);
+}
+header{
+  background:rgba(246,251,255,.72);
+  border-bottom:1px solid rgba(255,255,255,.8);
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  box-shadow:0 5px 24px rgba(48,112,158,.08);
+}
+header h1{font-size:21px;letter-spacing:-.4px;color:#174f78}
+.wrap{max-width:720px;padding:0 12px 105px}
+.card{
+  position:relative;overflow:hidden;
+  background:linear-gradient(145deg,rgba(255,255,255,.78),rgba(238,248,255,.55));
+  border:1px solid rgba(255,255,255,.92);
+  box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.9);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border-radius:24px;
+}
+.card:after{
+  content:"";position:absolute;right:-45px;top:-50px;width:145px;height:145px;
+  background:radial-gradient(circle,rgba(103,188,235,.13),transparent 68%);
+  pointer-events:none
+}
+button{
+  min-height:42px;border-radius:14px;border:1px solid rgba(75,146,198,.18);
+  background:rgba(255,255,255,.66);color:#255575;
+  box-shadow:0 4px 12px rgba(50,115,160,.06);
+}
+button:active{transform:scale(.98)}
+button.primary{
+  background:linear-gradient(135deg,#2e91d0,#62b8e8);
+  border-color:rgba(255,255,255,.55);box-shadow:0 8px 20px rgba(43,139,201,.22)
+}
+.daybar{
+  gap:8px;padding:4px 1px 11px;
+  scrollbar-width:none;
+}
+.daybar::-webkit-scrollbar{display:none}
+.daybar button{
+  min-width:86px;border-radius:18px;background:rgba(255,255,255,.58);
+  backdrop-filter:blur(10px);padding:10px 13px
+}
+.daybar button.active{
+  color:white;background:linear-gradient(135deg,#318fcb,#66b9e8);
+  border-color:rgba(255,255,255,.75);box-shadow:0 8px 18px rgba(46,139,198,.22)
+}
+.grid{grid-template-columns:1fr}
+.grid aside{display:grid;gap:14px}
+.task{
+  position:relative;overflow:hidden;margin:9px 0;padding:15px 12px;
+  border:1px solid rgba(255,255,255,.82)!important;border-radius:20px;
+  background:rgba(255,255,255,.48);
+  box-shadow:0 6px 18px rgba(47,112,158,.07);
+}
+.task:before{
+  position:absolute;right:10px;top:50%;transform:translateY(-50%);
+  font-size:58px;opacity:.075;line-height:1;pointer-events:none;filter:saturate(.5)
+}
+.task[data-category="Estudo"]:before{content:"📖"}
+.task[data-category="Corrida"]:before{content:"🏃"}
+.task[data-category="Jiu-jitsu"]:before{content:"🥋"}
+.task[data-category="Calistenia"]:before{content:"💪"}
+.task[data-category="Escada"]:before{content:"🪜"}
+.task[data-category="Ciclismo"]:before{content:"🚴"}
+.task[data-category="Outros"]:before{content:"✓"}
+.task.done{
+  background:linear-gradient(135deg,rgba(220,248,239,.65),rgba(238,252,248,.48));
+  border-color:rgba(80,174,143,.24)!important
+}
+.task input[type="checkbox"]{
+  width:21px;height:21px;accent-color:#2f91ca;position:relative;z-index:1
+}
+.time{color:#2c80b5}
+.name{font-size:15px;color:#163f5d;position:relative;z-index:1}
+.cat{color:#7590a4;position:relative;z-index:1}
+.task .obs,.mins input,textarea,.profile-field input,.edit-row input,.edit-row select{
+  background:rgba(255,255,255,.66)!important;border:1px solid rgba(78,151,204,.17)!important;
+  box-shadow:inset 0 1px 3px rgba(47,103,145,.04);
+  border-radius:13px!important;color:#24465f;outline:none
+}
+textarea:focus,input:focus,select:focus{border-color:rgba(42,144,207,.5)!important;box-shadow:0 0 0 3px rgba(64,158,216,.10)!important}
+.stats{gap:9px}
+.stat,.weekly-card{
+  background:rgba(255,255,255,.52);border:1px solid rgba(255,255,255,.82);
+  border-radius:18px;box-shadow:0 5px 14px rgba(46,109,153,.06)
+}
+.stat b,.weekly-card b{color:#237fb9}
+.track,.week-progress{background:rgba(130,171,199,.17);height:10px}
+.fill,.week-progress>div{background:linear-gradient(90deg,#2d8fc9,#72c6ef)}
+.weekly-dashboard h2,.weekly-dashboard h3,.chart-box h3{color:#174f78}
+.category-table th,.weight-history th{color:#337aa7;background:rgba(220,241,253,.36)}
+.category-table td,.category-table th,.weight-history td,.weight-history th{border-color:rgba(86,148,192,.12)}
+.chart-box{border-color:rgba(74,144,193,.16)}
+.seven-chart{border-color:rgba(74,144,193,.16)}
+.chart-bar.plan{background:rgba(129,169,197,.35)}
+.chart-bar.real{background:linear-gradient(#68bdea,#278ac7)}
+.legend-plan{background:rgba(129,169,197,.45)}
+.legend-real{background:#3b9ed7}
+.profile-avatar{
+  background:linear-gradient(145deg,rgba(255,255,255,.9),rgba(199,232,250,.68));
+  border:1px solid white;box-shadow:0 8px 22px rgba(40,125,182,.13)
+}
+.profile-name{color:#18577f}
+.profile-tabs{
+  background:rgba(218,239,252,.48);padding:5px;border-radius:18px;gap:4px
+}
+.profile-tabs button{border:0;box-shadow:none;background:transparent}
+.profile-tabs button.active{
+  background:rgba(255,255,255,.86);border:0;color:#2383bd;
+  box-shadow:0 5px 14px rgba(45,112,159,.10);border-radius:14px
+}
+.bmi-scale{box-shadow:inset 0 1px 3px rgba(0,0,0,.08)}
+.weight-chart-wrap{
+  background:rgba(255,255,255,.38);border:1px solid rgba(255,255,255,.8);
+  padding:8px;border-radius:18px
+}
+.backup-info,.mutedbox{
+  background:rgba(230,244,253,.48);border-color:rgba(55,138,193,.20);border-radius:16px
+}
+.bottom-nav{
+  left:10px;right:10px;bottom:9px;border:1px solid rgba(255,255,255,.9);
+  border-radius:24px;padding:7px 6px max(7px,env(safe-area-inset-bottom));
+  background:rgba(246,251,255,.78);
+  backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
+  box-shadow:0 10px 34px rgba(34,99,145,.18)
+}
+.bottom-nav button{box-shadow:none;border:0;min-height:51px;background:transparent;border-radius:17px}
+.bottom-nav button.active{
+  color:#1d82be;background:linear-gradient(145deg,rgba(212,239,254,.9),rgba(255,255,255,.78));
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.85)
+}
+.nav-icon{font-size:21px}
+dialog{
+  background:rgba(246,251,255,.94);border:1px solid white;
+  backdrop-filter:blur(20px);border-radius:25px
+}
+dialog::backdrop{background:rgba(19,55,79,.28);backdrop-filter:blur(4px)}
+.modal-head,.modal-foot{border-color:rgba(75,145,194,.15)}
+.small{color:#71899b}
+hr{border-color:rgba(72,142,191,.14)!important}
+
+@media(max-width:600px){
+  header{padding:12px 14px}
+  .wrap{margin:12px auto;padding-left:9px;padding-right:9px}
+  .card{border-radius:22px;padding:13px}
+  .task{grid-template-columns:26px 78px 1fr;gap:8px}
+  .task:before{font-size:50px;right:5px}
+  .mins{grid-column:3}
+  .weekly-grid{grid-template-columns:1fr 1fr}
+  .weekly-card{padding:10px}
+  .weekly-card b{font-size:19px}
+  .profile-tabs button{font-size:12px;padding:8px 5px}
+  .bottom-nav{left:7px;right:7px}
+}
+
+</style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <div>
+      <h1>Rotina semanal</h1>
+      <div class="small" id="dateLabel"></div>
+    </div>
+    <div>
+      <button id="todayBtn">Hoje</button>
+    </div>
+  </div>
+</header>
+
+
+<main class="wrap">
+  <section id="pageRoutine" class="app-page active">
+    <div class="daybar" id="daybar"></div>
+    <div class="grid">
+    <section class="card">
+      <h2 id="dayTitle" style="margin-top:0"></h2>
+      <div id="tasks"></div>
+
+      <div style="margin-top:16px">
+        <label><b>Observação do dia</b></label>
+        <textarea id="dayNote" placeholder="Ex.: cansado, prova marcada, treino reduzido..."></textarea>
+      </div>
+    </section>
+
+    <aside>
+      <section class="card">
+        <h3 style="margin-top:0">Resumo do dia</h3>
+        <div class="stats">
+          <div class="stat">Concluídas<b id="doneCount">0/0</b></div>
+          <div class="stat">Execução<b id="percent">0%</b></div>
+          <div class="stat">Planejado<b id="plannedMin">0 min</b></div>
+          <div class="stat">Realizado<b id="actualMin">0 min</b></div>
+        </div>
+        <div id="bars"></div>
+      </section>
+
+      <section class="card" style="margin-top:16px">
+        <h3 style="margin-top:0">Histórico</h3>
+        <div class="small">Mostra o que foi feito e a diferença entre tempo planejado e realizado.</div>
+        <div class="history" id="history"></div>
+      </section>
+    </aside>
+  </div>
+
+  </section>
+
+  <section id="pageDashboard" class="app-page">
+    <section class="card weekly-dashboard">
+    <h2 style="margin-top:0">Dashboard semanal</h2>
+    <div class="small" id="weekRange"></div>
+
+    <div class="weekly-grid">
+      <div class="weekly-card">
+        <span>Cumprimento da semana</span>
+        <b id="weekPercent">0%</b>
+        <div class="week-progress"><div id="weekProgressFill" style="width:0%"></div></div>
+      </div>
+      <div class="weekly-card">
+        <span>Atividades concluídas</span>
+        <b id="weekDone">0/0</b>
+      </div>
+      <div class="weekly-card">
+        <span>Planejado × realizado</span>
+        <b id="weekMinutes">0 / 0 min</b>
+        <div class="small" id="weekDifference">Diferença: 0 min</div>
+      </div>
+      <div class="weekly-card">
+        <span>Sequência de dias</span>
+        <b id="weekStreak">0 dias</b>
+        <div class="small">dias consecutivos com 100% das atividades concluídas</div>
+      </div>
+    </div>
+
+    <h3>Totais por categoria</h3>
+    <div id="weekCategories"></div>
+
+    </section>
+  </section>
+
+  <section id="pageChart" class="app-page">
+    <section class="card">
+      <div class="chart-box">
+      <h3 style="margin:0">Últimos 7 dias — planejado × realizado</h3>
+      <div class="chart-legend">
+        <span><i class="legend-mark legend-plan"></i>Planejado</span>
+        <span><i class="legend-mark legend-real"></i>Realizado</span>
+      </div>
+      <div class="seven-chart" id="sevenDayChart"></div>
+      <div class="small" style="margin-top:8px">O realizado soma os minutos das atividades marcadas como concluídas.</div>
+    </div>
+    </section>
+  </section>
+
+  <section id="pageProfile" class="app-page">
+    <section class="card profile-box">
+      <div class="profile-avatar">👤</div>
+      <div class="small">Perfil</div>
+      <div class="profile-name" id="profileNamePreview">Usuário</div>
+
+      <div class="profile-tabs">
+        <button class="active" data-profile-tab="profileData">Dados</button>
+        <button data-profile-tab="profileHealth">Peso & IMC</button>
+        <button data-profile-tab="profileSettings">Configurações</button>
+      </div>
+
+      <div id="profileData" class="profile-panel active">
+        <div class="profile-field">
+          <label for="profileName">Nome</label>
+          <input id="profileName" type="text" placeholder="Digite seu nome">
+        </div>
+        <button class="primary" id="saveProfileBtn">Salvar perfil</button>
+      </div>
+
+      <div id="profileHealth" class="profile-panel">
+        <h3>Peso e IMC</h3>
+        <div class="health-grid">
+          <div class="profile-field">
+            <label for="heightInput">Altura (cm)</label>
+            <input id="heightInput" type="number" min="100" max="250" step="1" placeholder="Ex.: 173">
+          </div>
+          <div class="profile-field">
+            <label for="weightInput">Peso (kg)</label>
+            <input id="weightInput" type="number" min="30" max="300" step="0.1" placeholder="Ex.: 83,0">
+          </div>
+        </div>
+        <button class="primary" id="saveWeightBtn">Registrar peso</button>
+
+        <div id="bmiBox" style="display:none;margin-top:18px">
+          <div class="small">Seu IMC atual</div>
+          <div class="bmi-result" id="bmiValue">—</div>
+          <b id="bmiClass">—</b>
+          <div class="bmi-scale"><div class="bmi-pointer" id="bmiPointer"></div></div>
+          <div class="bmi-labels">
+            <span>Baixo peso<br>&lt;18,5</span>
+            <span>Adequado<br>18,5–24,9</span>
+            <span>Sobrepeso<br>25–29,9</span>
+            <span>Obesidade<br>≥30</span>
+          </div>
+          <p class="small">O IMC é uma medida de triagem e não avalia composição corporal, massa muscular ou distribuição de gordura.</p>
+        </div>
+
+        <hr style="border:0;border-top:1px solid var(--line);margin:22px 0">
+        <h3>Evolução do peso</h3>
+        <div class="small">Cada novo registro fica salvo no aparelho e entra no gráfico.</div>
+        <div id="weightChart"></div>
+        <div class="weight-history" id="weightHistory"></div>
+      </div>
+
+      <div id="profileSettings" class="profile-panel">
+        <h3>Configurações da rotina</h3>
+        <p class="small">Altere horários, atividades, categorias e duração do seu plano atual.</p>
+        <button id="profileConfigBtn">⚙ Abrir configurações</button>
+
+        <hr style="border:0;border-top:1px solid var(--line);margin:22px 0">
+
+        <h3>Backup e troca de celular</h3>
+        <p class="small">O backup inclui perfil, altura, histórico de peso/IMC, rotina personalizada, atividades concluídas, observações e demais registros salvos neste navegador.</p>
+        <div class="backup-actions">
+          <button class="primary" id="exportBackupBtn">⬇ Exportar backup</button>
+          <button id="importBackupBtn">⬆ Restaurar backup</button>
+        </div>
+        <input id="backupFileInput" type="file" accept=".json,application/json" style="display:none">
+        <div class="backup-info" id="backupStatus">
+          <b>Como trocar de celular:</b>
+          <div class="small">1. Exporte o backup no celular antigo. 2. Envie o arquivo para o celular novo. 3. Abra este sistema no novo aparelho e escolha “Restaurar backup”.</div>
+        </div>
+      </div>
+    </section>
+  </section>
+</main>
+
+<nav class="bottom-nav" aria-label="Navegação principal">
+  <button class="active" data-page="pageRoutine"><span class="nav-icon">📅</span><span>Rotina</span></button>
+  <button data-page="pageDashboard"><span class="nav-icon">📊</span><span>Dashboard</span></button>
+  <button data-page="pageChart"><span class="nav-icon">📈</span><span>Gráfico</span></button>
+  <button data-page="pageProfile"><span class="nav-icon">👤</span><span>Perfil</span></button>
+</nav>
+
+
+<dialog id="configDialog">
+  <div class="modal-head">
+    <b>Configurar rotina</b>
+    <button onclick="configDialog.close()">✕</button>
+  </div>
+  <div class="modal-body">
+    <div class="mutedbox">
+      Aqui você altera o plano atual. As mudanças ficam salvas neste navegador.
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;margin:14px 0;flex-wrap:wrap">
+      <label>Dia:</label>
+      <select id="editDay"></select>
+      <button id="addTaskBtn">+ Adicionar atividade</button>
+      <button id="resetBtn" class="danger">Restaurar plano original</button>
+    </div>
+    <div id="editor"></div>
+  </div>
+  <div class="modal-foot">
+    <button onclick="configDialog.close()">Cancelar</button>
+    <button class="primary" id="saveConfigBtn">Salvar alterações</button>
+  </div>
+</dialog>
+
+<script>
+const DAYS = [
+  {key:'seg', name:'Segunda'},
+  {key:'ter', name:'Terça'},
+  {key:'qua', name:'Quarta'},
+  {key:'qui', name:'Quinta'},
+  {key:'sex', name:'Sexta'},
+  {key:'sab', name:'Sábado'},
+  {key:'dom', name:'Domingo'}
+];
+
+const DEFAULT_PLAN = {
+ seg:[
+  ['05:10–07:10','Estudo','Estudo',120],
+  ['07:20–07:50','Leitura','Estudo',30],
+  ['Durante o trabalho','Barra fixa + paralelas','Calistenia',10],
+  ['12:30–13:30','Estudo','Estudo',60],
+  ['18:10–18:40','Corrida leve 3–4 km','Corrida',30],
+  ['18:45–20:15','Estudo','Estudo',90],
+  ['20:30–21:30','Jiu-jitsu','Jiu-jitsu',60],
+  ['21:35–22:05','Revisão / questões','Estudo',30]
+ ],
+ ter:[
+  ['05:10–07:10','Estudo','Estudo',120],
+  ['07:20–07:50','Leitura','Estudo',30],
+  ['12:30–13:30','Estudo','Estudo',60],
+  ['18:10–18:45','Treino de velocidade','Corrida',35],
+  ['18:45–19:00','Escada','Escada',15],
+  ['19:05–20:15','Estudo','Estudo',70],
+  ['20:30–21:30','Jiu-jitsu','Jiu-jitsu',60],
+  ['21:35–22:25','Estudo / revisão','Estudo',50]
+ ],
+ qua:[
+  ['05:10–07:10','Estudo','Estudo',120],
+  ['07:20–07:50','Leitura','Estudo',30],
+  ['Manhã','Barra fixa - 3 séries','Calistenia',10],
+  ['Tarde','Paralelas + agachamento','Calistenia',10],
+  ['12:30–13:30','Estudo','Estudo',60],
+  ['18:15–20:15','Estudo','Estudo',120],
+  ['20:30–21:30','Jiu-jitsu','Jiu-jitsu',60]
+ ],
+ qui:[
+  ['05:10–07:10','Estudo','Estudo',120],
+  ['07:20–07:50','Leitura','Estudo',30],
+  ['Durante o trabalho','Barras leves','Calistenia',8],
+  ['12:30–13:30','Estudo','Estudo',60],
+  ['18:10–18:50','Corrida específica 2.400 m','Corrida',40],
+  ['19:00–20:15','Estudo','Estudo',75],
+  ['20:30–21:30','Jiu-jitsu','Jiu-jitsu',60],
+  ['21:35–22:20','Revisão','Estudo',45]
+ ],
+ sex:[
+  ['05:10–07:10','Estudo','Estudo',120],
+  ['07:20–07:50','Leitura','Estudo',30],
+  ['Durante o trabalho','Barra + paralelas + flexões','Calistenia',10],
+  ['12:30–13:30','Estudo','Estudo',60],
+  ['18:15–20:15','Estudo','Estudo',120],
+  ['20:30–21:30','Jiu-jitsu','Jiu-jitsu',60]
+ ],
+ sab:[
+  ['06:00–09:00','Estudo','Estudo',180],
+  ['09:15–10:00','Corrida 4–4,5 km','Corrida',45],
+  ['Após corrida','Escada 6–8 subidas','Escada',10],
+  ['10:15–10:25','Barra + paralelas leves','Calistenia',10],
+  ['13:30–16:00','Estudo','Estudo',150],
+  ['17:00–17:30','Leitura','Estudo',30],
+  ['18:00–19:30','Estudo / revisão','Estudo',90]
+ ],
+ dom:[
+  ['06:30–09:30','Estudo','Estudo',180],
+  ['09:45–10:45','Pedal','Ciclismo',60],
+  ['13:30–16:00','Estudo','Estudo',150],
+  ['17:00–17:30','Leitura','Estudo',30],
+  ['18:00–19:30','Revisão','Estudo',90]
+ ]
+};
+
+const clone = o => JSON.parse(JSON.stringify(o));
+let plan = JSON.parse(localStorage.getItem('rotina.plan') || 'null') || clone(DEFAULT_PLAN);
+let selectedDay = keyFromDate(new Date());
+
+function keyFromDate(d){
+  const map=['dom','seg','ter','qua','qui','sex','sab'];
+  return map[d.getDay()];
+}
+function dateKey(d=new Date()){
+  return d.toISOString().slice(0,10);
+}
+function storageKey(day=selectedDay){
+  const today = new Date();
+  const offset = DAYS.findIndex(x=>x.key===day) - ((today.getDay()+6)%7);
+  const target = new Date(today);
+  target.setDate(today.getDate()+offset);
+  return 'rotina.log.'+dateKey(target);
+}
+function getLog(day=selectedDay){
+  return JSON.parse(localStorage.getItem(storageKey(day)) || '{"tasks":{},"note":""}');
+}
+function setLog(log,day=selectedDay){
+  localStorage.setItem(storageKey(day),JSON.stringify(log));
+}
+function dayDate(day){
+  const today = new Date();
+  const cur=(today.getDay()+6)%7;
+  const idx=DAYS.findIndex(x=>x.key===day);
+  const d=new Date(today); d.setDate(today.getDate()+(idx-cur)); return d;
+}
+function fmtDate(d){
+  return d.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'});
+}
+
+function renderDaybar(){
+  daybar.innerHTML='';
+  DAYS.forEach(d=>{
+    const b=document.createElement('button');
+    b.textContent=d.name;
+    if(d.key===selectedDay)b.classList.add('active');
+    b.onclick=()=>{selectedDay=d.key;render()};
+    daybar.appendChild(b);
+  });
+}
+function render(){
+  renderDaybar();
+  const d=DAYS.find(x=>x.key===selectedDay);
+  dayTitle.textContent=d.name;
+  dateLabel.textContent=fmtDate(dayDate(selectedDay));
+  const log=getLog();
+  tasks.innerHTML='';
+  (plan[selectedDay]||[]).forEach((t,i)=>{
+    const item=log.tasks[i] || {done:false, actual:t[3], obs:''};
+    const row=document.createElement('div');
+    row.className='task'+(item.done?' done':'');
+    row.dataset.category=t[2]||'Outros';
+    row.innerHTML=`
+      <input type="checkbox" ${item.done?'checked':''} aria-label="Concluído">
+      <div class="time">${t[0]}</div>
+      <div><div class="name">${t[1]}</div><div class="cat">${t[2]} · planejado ${t[3]} min</div>
+      <input class="obs" placeholder="Observação da atividade" value="${escapeHtml(item.obs||'')}" style="margin-top:7px;width:100%;padding:6px;border:1px solid #ddd;border-radius:6px">
+      </div>
+      <div class="mins"><input type="number" min="0" step="5" value="${item.actual ?? t[3]}" title="Minutos realizados"><div class="small">min reais</div></div>
+    `;
+    const cb=row.querySelector('input[type=checkbox]');
+    const actual=row.querySelector('input[type=number]');
+    const obs=row.querySelector('.obs');
+    const save=()=>{
+      const L=getLog();
+      L.tasks[i]={done:cb.checked, actual:Number(actual.value||0), obs:obs.value};
+      setLog(L);
+      row.classList.toggle('done',cb.checked);
+      renderStats();
+      renderWeeklyDashboard();
+    };
+    cb.onchange=save; actual.onchange=save; obs.onchange=save;
+    tasks.appendChild(row);
+  });
+  dayNote.value=log.note||'';
+  dayNote.onchange=()=>{const L=getLog();L.note=dayNote.value;setLog(L)};
+  renderStats();
+  renderHistory();
+}
+
+function mondayOf(d){
+  const x=new Date(d);
+  const shift=(x.getDay()+6)%7;
+  x.setHours(12,0,0,0);
+  x.setDate(x.getDate()-shift);
+  return x;
+}
+function logForDate(d){
+  return JSON.parse(localStorage.getItem('rotina.log.'+dateKey(d)) || '{"tasks":{},"note":""}');
+}
+
+function renderSevenDayChart(){
+  const data=[];
+  let max=0;
+
+  for(let offset=6;offset>=0;offset--){
+    const d=new Date();
+    d.setHours(12,0,0,0);
+    d.setDate(d.getDate()-offset);
+
+    const dayKey=keyFromDate(d);
+    const items=plan[dayKey]||[];
+    const log=logForDate(d);
+
+    let planned=0, actual=0;
+    items.forEach((t,i)=>{
+      planned+=Number(t[3]||0);
+      const l=log.tasks[i]||{};
+      if(l.done) actual+=Number(l.actual ?? t[3] ?? 0);
+    });
+
+    max=Math.max(max,planned,actual);
+    data.push({
+      label:d.toLocaleDateString('pt-BR',{weekday:'short'}).replace('.',''),
+      date:d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}),
+      planned,actual
+    });
+  }
+
+  max=max||1;
+  sevenDayChart.innerHTML=data.map(x=>{
+    const ph=Math.max(2,Math.round(x.planned/max*170));
+    const ah=x.actual ? Math.max(2,Math.round(x.actual/max*170)) : 2;
+    return `<div class="chart-day">
+      <div class="chart-bars">
+        <div class="chart-bar plan" style="height:${ph}px" title="Planejado: ${x.planned} min">
+          <span class="chart-value">${x.planned}</span>
+        </div>
+        <div class="chart-bar real" style="height:${ah}px" title="Realizado: ${x.actual} min">
+          <span class="chart-value">${x.actual}</span>
+        </div>
+      </div>
+      <div class="chart-label"><b>${x.label}</b><br>${x.date}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderWeeklyDashboard(){
+  renderSevenDayChart();
+  const monday=mondayOf(new Date());
+  const sunday=new Date(monday); sunday.setDate(monday.getDate()+6);
+  weekRange.textContent =
+    monday.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}) +
+    ' a ' +
+    sunday.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
+
+  let totalTasks=0, doneTasks=0, plannedAll=0, actualDone=0;
+  const cats={};
+
+  DAYS.forEach((day,di)=>{
+    const date=new Date(monday); date.setDate(monday.getDate()+di);
+    const log=logForDate(date);
+    const items=plan[day.key]||[];
+
+    items.forEach((t,i)=>{
+      const planned=Number(t[3]||0);
+      const l=log.tasks[i]||{};
+      totalTasks++;
+      plannedAll+=planned;
+
+      if(!cats[t[2]]) cats[t[2]]={total:0,done:0,planned:0,actual:0};
+      cats[t[2]].total++;
+      cats[t[2]].planned+=planned;
+
+      if(l.done){
+        const actual=Number(l.actual ?? planned);
+        doneTasks++;
+        actualDone+=actual;
+        cats[t[2]].done++;
+        cats[t[2]].actual+=actual;
+      }
+    });
+  });
+
+  const pct=totalTasks ? Math.round(doneTasks/totalTasks*100) : 0;
+  weekPercent.textContent=pct+'%';
+  weekDone.textContent=doneTasks+'/'+totalTasks;
+  weekMinutes.textContent=plannedAll+' / '+actualDone+' min';
+  const diff=actualDone-plannedAll;
+  weekDifference.textContent='Diferença: '+(diff>=0?'+':'')+diff+' min';
+  weekProgressFill.style.width=pct+'%';
+
+  // Streak: count backwards from today. A day counts only if all planned tasks are done.
+  let streak=0;
+  const cursor=new Date();
+  cursor.setHours(12,0,0,0);
+  for(let n=0;n<365;n++){
+    const key=keyFromDate(cursor);
+    const items=plan[key]||[];
+    const log=logForDate(cursor);
+    const complete=items.length>0 && items.every((t,i)=>(log.tasks[i]||{}).done);
+    if(!complete) break;
+    streak++;
+    cursor.setDate(cursor.getDate()-1);
+  }
+  weekStreak.textContent=streak+' '+(streak===1?'dia':'dias');
+
+  const entries=Object.entries(cats);
+  weekCategories.innerHTML=entries.length ? `
+    <table class="category-table">
+      <thead><tr><th>Categoria</th><th>Concluídas</th><th>Planejado</th><th>Realizado</th><th>Cumprimento</th></tr></thead>
+      <tbody>${entries.map(([name,c])=>{
+        const p=c.total?Math.round(c.done/c.total*100):0;
+        return `<tr><td>${escapeHtml(name)}</td><td>${c.done}/${c.total}</td><td>${c.planned} min</td><td>${c.actual} min</td><td>${p}%</td></tr>`;
+      }).join('')}</tbody>
+    </table>` : '<p class="small">Sem categorias cadastradas.</p>';
+}
+
+function renderStats(){
+  const log=getLog();
+  const items=plan[selectedDay]||[];
+  let done=0,planned=0,actual=0;
+  const cats={};
+  items.forEach((t,i)=>{
+    const l=log.tasks[i]||{};
+    planned+=Number(t[3]||0);
+    if(l.done){
+      done++;
+      actual+=Number(l.actual ?? t[3] ?? 0);
+      cats[t[2]] = (cats[t[2]]||0)+1;
+    }
+  });
+  doneCount.textContent=`${done}/${items.length}`;
+  percent.textContent=items.length?Math.round(done/items.length*100)+'%':'0%';
+  plannedMin.textContent=planned+' min';
+  actualMin.textContent=actual+' min';
+
+  const allCats=[...new Set(items.map(t=>t[2]))];
+  bars.innerHTML=allCats.map(c=>{
+    const total=items.filter(t=>t[2]===c).length;
+    const n=cats[c]||0;
+    const p=total?Math.round(n/total*100):0;
+    return `<div class="barrow"><div class="barlabel"><span>${c}</span><span>${n}/${total}</span></div><div class="track"><div class="fill" style="width:${p}%"></div></div></div>`;
+  }).join('');
+}
+function renderHistory(){
+  const rows=[];
+  for(let i=0;i<14;i++){
+    const d=new Date(); d.setDate(d.getDate()-i);
+    const key='rotina.log.'+dateKey(d);
+    const log=JSON.parse(localStorage.getItem(key)||'null');
+    if(!log) continue;
+    const day=keyFromDate(d);
+    const items=plan[day]||[];
+    let done=0, p=0, a=0;
+    items.forEach((t,idx)=>{
+      const l=log.tasks[idx]||{};
+      if(l.done){done++; p+=Number(t[3]||0); a+=Number(l.actual ?? t[3] ?? 0);}
+    });
+    rows.push(`<tr><td>${d.toLocaleDateString('pt-BR')}</td><td>${done}/${items.length}</td><td>${a-p>=0?'+':''}${a-p} min</td></tr>`);
+  }
+  history.innerHTML = rows.length ? `<table><thead><tr><th>Data</th><th>Feitas</th><th>Diferença</th></tr></thead><tbody>${rows.join('')}</tbody></table>` : '<p class="small">Ainda não há histórico.</p>';
+}
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+}
+
+todayBtn.onclick=()=>{selectedDay=keyFromDate(new Date());render()};
+const navButtons=[...document.querySelectorAll('.bottom-nav button')];
+const pages=[...document.querySelectorAll('.app-page')];
+
+function showPage(id){
+  pages.forEach(p=>p.classList.toggle('active',p.id===id));
+  navButtons.forEach(b=>b.classList.toggle('active',b.dataset.page===id));
+  localStorage.setItem('rotina.page',id);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+navButtons.forEach(b=>b.onclick=()=>showPage(b.dataset.page));
+
+const savedProfile=JSON.parse(localStorage.getItem('rotina.profile')||'{}');
+profileName.value=savedProfile.name||'';
+profileNamePreview.textContent=savedProfile.name||'Usuário';
+heightInput.value=savedProfile.height||'';
+
+saveProfileBtn.onclick=()=>{
+  const name=profileName.value.trim();
+  const profile=JSON.parse(localStorage.getItem('rotina.profile')||'{}');
+  profile.name=name;
+  localStorage.setItem('rotina.profile',JSON.stringify(profile));
+  profileNamePreview.textContent=name||'Usuário';
+};
+
+document.querySelectorAll('.profile-tabs button').forEach(btn=>{
+  btn.onclick=()=>{
+    document.querySelectorAll('.profile-tabs button').forEach(b=>b.classList.toggle('active',b===btn));
+    document.querySelectorAll('.profile-panel').forEach(p=>p.classList.toggle('active',p.id===btn.dataset.profileTab));
+    if(btn.dataset.profileTab==='profileHealth') renderHealth();
+  };
+});
+
+function bmiInfo(bmi){
+  if(bmi < 18.5) return 'Baixo peso';
+  if(bmi < 25) return 'Peso adequado';
+  if(bmi < 30) return 'Sobrepeso';
+  if(bmi < 35) return 'Obesidade grau I';
+  if(bmi < 40) return 'Obesidade grau II';
+  return 'Obesidade grau III';
+}
+function weightRecords(){
+  return JSON.parse(localStorage.getItem('rotina.weights')||'[]');
+}
+function calculateBMI(weight,heightCm){
+  const h=heightCm/100;
+  return h>0 ? weight/(h*h) : 0;
+}
+function showBMI(weight,height){
+  if(!weight || !height){ bmiBox.style.display='none'; return; }
+  const bmi=calculateBMI(weight,height);
+  bmiBox.style.display='block';
+  bmiValue.textContent=bmi.toFixed(1).replace('.',',');
+  bmiClass.textContent=bmiInfo(bmi);
+  // visual scale from BMI 15 to 40, clamped
+  const pos=Math.max(0,Math.min(100,(bmi-15)/(40-15)*100));
+  bmiPointer.style.left=`calc(${pos}% - 1px)`;
+}
+function renderWeightChart(records){
+  if(!records.length){
+    weightChart.innerHTML='<p class="small">Nenhum peso registrado ainda.</p>';
+    return;
+  }
+
+  const data=records.slice(-12);
+  const vals=data.map(x=>Number(x.weight));
+  let min=Math.min(...vals), max=Math.max(...vals);
+
+  // Dá uma margem visual para o gráfico não encostar no topo/rodapé.
+  if(max-min<2){ min-=1; max+=1; }
+  else{
+    const margin=(max-min)*0.15;
+    min-=margin;
+    max+=margin;
+  }
+
+  const range=max-min || 1;
+
+  // Coordenadas fixas do SVG. O viewBox faz o gráfico se adaptar
+  // automaticamente à largura da tela sem escapar do card.
+  const W=700, H=250;
+  const left=52, right=18, top=24, bottom=48;
+  const plotW=W-left-right, plotH=H-top-bottom;
+
+  const pts=data.map((r,i)=>{
+    const x=data.length===1
+      ? left + plotW/2
+      : left + (i/(data.length-1))*plotW;
+    const y=top + (1-((Number(r.weight)-min)/range))*plotH;
+    return {x,y,r};
+  });
+
+  const gridVals=[max,(max+min)/2,min];
+  let svg=`<div class="weight-chart-wrap">
+    <svg class="weight-chart-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="Gráfico de evolução do peso">
+      <line x1="${left}" y1="${top}" x2="${left}" y2="${top+plotH}" stroke="#d9dde3" stroke-width="1"/>
+      <line x1="${left}" y1="${top+plotH}" x2="${left+plotW}" y2="${top+plotH}" stroke="#d9dde3" stroke-width="1">`;
+
+  gridVals.forEach((v,idx)=>{
+    const gy=top+(idx/2)*plotH;
+    svg+=`
+      <line x1="${left}" y1="${gy}" x2="${left+plotW}" y2="${gy}" stroke="#eef0f2" stroke-width="1"/>
+      <text x="${left-8}" y="${gy+4}" text-anchor="end" font-size="11" fill="#6b7280">${v.toFixed(1).replace('.',',')}</text>`;
+  });
+
+  if(pts.length>1){
+    svg+=`<polyline points="${pts.map(p=>`${p.x},${p.y}`).join(' ')}"
+      fill="none" stroke="#1f5f46" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;
+  }
+
+  pts.forEach((p,i)=>{
+    const d=p.r.savedAt?new Date(p.r.savedAt):new Date(p.r.date+'T12:00:00');
+    const weight=Number(p.r.weight).toFixed(1).replace('.',',');
+    const dateLabel=d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+    const timeLabel=p.r.savedAt?d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'';
+
+    svg+=`
+      <circle cx="${p.x}" cy="${p.y}" r="5" fill="#1f5f46"/>
+      <text x="${p.x}" y="${Math.max(14,p.y-10)}" text-anchor="middle" font-size="11" font-weight="700" fill="#1f2937">${weight} kg</text>
+      <text x="${p.x}" y="${top+plotH+20}" text-anchor="middle" font-size="10" fill="#6b7280">${dateLabel}</text>
+      <text x="${p.x}" y="${top+plotH+33}" text-anchor="middle" font-size="9" fill="#6b7280">${timeLabel}</text>`;
+  });
+
+  svg+=`</svg></div>`;
+  weightChart.innerHTML=svg;
+}
+function renderHealth(){
+  const profile=JSON.parse(localStorage.getItem('rotina.profile')||'{}');
+  const records=weightRecords();
+  heightInput.value=profile.height||heightInput.value||'';
+  const latest=records.length?records[records.length-1]:null;
+  showBMI(latest?Number(latest.weight):Number(weightInput.value),Number(heightInput.value));
+  renderWeightChart(records);
+
+  if(records.length){
+    weightHistory.innerHTML=`<table><thead><tr><th>Data</th><th>Peso</th><th>IMC</th><th></th></tr></thead><tbody>${
+      records.slice().reverse().map((r,revIdx)=>{
+        const originalIdx=records.length-1-revIdx;
+        const bmi=r.height?calculateBMI(Number(r.weight),Number(r.height)):0;
+        const when=r.savedAt?new Date(r.savedAt):new Date(r.date+'T12:00:00');
+        const dateText=when.toLocaleDateString('pt-BR')+(r.savedAt?' '+when.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'');
+        return `<tr><td>${dateText}</td><td>${Number(r.weight).toFixed(1).replace('.',',')} kg</td><td>${bmi?bmi.toFixed(1).replace('.',','):'—'}</td><td><button class="danger" onclick="deleteWeight(${originalIdx})">Excluir</button></td></tr>`;
+      }).join('')
+    }</tbody></table>`;
+  }else weightHistory.innerHTML='';
+}
+window.deleteWeight=function(index){
+  const records=weightRecords();
+  records.splice(index,1);
+  localStorage.setItem('rotina.weights',JSON.stringify(records));
+  renderHealth();
+};
+saveWeightBtn.onclick=()=>{
+  const height=Number(heightInput.value);
+  const weight=Number(String(weightInput.value).replace(',','.'));
+  if(!height || height<100 || height>250){alert('Informe uma altura válida em centímetros.');return;}
+  if(!weight || weight<30 || weight>300){alert('Informe um peso válido em kg.');return;}
+
+  const profile=JSON.parse(localStorage.getItem('rotina.profile')||'{}');
+  profile.height=height;
+  localStorage.setItem('rotina.profile',JSON.stringify(profile));
+
+  const records=weightRecords();
+  const now=new Date();
+  const record={
+    id: now.getTime()+'_'+Math.random().toString(36).slice(2,8),
+    date: dateKey(now),
+    weight: weight,
+    height: height,
+    savedAt: now.toISOString()
+  };
+  // Cada clique em "Registrar peso" cria um registro novo.
+  // Nunca substitui a medição anterior, mesmo que seja no mesmo dia.
+  records.push(record);
+  records.sort((a,b)=>(a.savedAt||a.date).localeCompare(b.savedAt||b.date));
+  localStorage.setItem('rotina.weights',JSON.stringify(records));
+  weightInput.value='';
+  renderHealth();
+};
+
+profileConfigBtn.onclick=()=>{
+  openEditor(selectedDay);
+  configDialog.showModal();
+};
+
+
+function getAllRoutineData(){
+  const data={};
+  for(let i=0;i<localStorage.length;i++){
+    const key=localStorage.key(i);
+    if(key && key.startsWith('rotina.')) data[key]=localStorage.getItem(key);
+  }
+  return {
+    app:'Rotina Semanal',
+    version:2,
+    exportedAt:new Date().toISOString(),
+    data:data
+  };
+}
+
+exportBackupBtn.onclick=()=>{
+  const backup=getAllRoutineData();
+  const blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const stamp=new Date().toISOString().slice(0,10);
+  a.href=url;
+  a.download='backup_rotina_'+stamp+'.json';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  backupStatus.innerHTML='<b>Backup exportado.</b><div class="small">Guarde o arquivo em um local seguro para restaurar em outro aparelho.</div>';
+};
+
+importBackupBtn.onclick=()=>backupFileInput.click();
+
+backupFileInput.onchange=async()=>{
+  const file=backupFileInput.files && backupFileInput.files[0];
+  if(!file) return;
+  try{
+    const text=await file.text();
+    const backup=JSON.parse(text);
+    if(!backup || backup.app!=='Rotina Semanal' || !backup.data || typeof backup.data!=='object'){
+      throw new Error('Arquivo incompatível');
+    }
+    if(!confirm('Restaurar este backup? Os dados atuais da rotina serão substituídos pelos dados do arquivo.')) return;
+
+    // Remove only app-owned keys, leaving unrelated browser storage untouched.
+    const keys=[];
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      if(k && k.startsWith('rotina.')) keys.push(k);
+    }
+    keys.forEach(k=>localStorage.removeItem(k));
+    Object.entries(backup.data).forEach(([k,v])=>{
+      if(k.startsWith('rotina.')) localStorage.setItem(k,String(v));
+    });
+
+    backupStatus.innerHTML='<b>Backup restaurado com sucesso.</b><div class="small">Recarregando os dados...</div>';
+    setTimeout(()=>location.reload(),700);
+  }catch(e){
+    alert('Não foi possível restaurar o backup. Selecione um arquivo de backup válido deste sistema.');
+  }finally{
+    backupFileInput.value='';
+  }
+};
+
+editDay.innerHTML=DAYS.map(d=>`<option value="${d.key}">${d.name}</option>`).join('');
+editDay.onchange=()=>openEditor(editDay.value);
+
+function openEditor(day){
+  editDay.value=day;
+  editor.innerHTML='';
+  (plan[day]||[]).forEach((t,i)=>editor.appendChild(makeEditRow(t,i)));
+}
+function makeEditRow(t,i){
+  const row=document.createElement('div');
+  row.className='edit-row';
+  row.innerHTML=`
+    <input class="e-time" value="${escapeHtml(t[0])}" placeholder="Horário">
+    <input class="e-name" value="${escapeHtml(t[1])}" placeholder="Atividade">
+    <input class="e-cat" value="${escapeHtml(t[2])}" placeholder="Categoria">
+    <input class="e-min" type="number" min="0" value="${t[3]}" placeholder="Min">
+    <button class="danger" title="Excluir">🗑</button>`;
+  row.querySelector('button').onclick=()=>row.remove();
+  return row;
+}
+addTaskBtn.onclick=()=>editor.appendChild(makeEditRow(['','Nova atividade','Outros',30],999));
+
+saveConfigBtn.onclick=()=>{
+  const day=editDay.value;
+  const list=[...editor.querySelectorAll('.edit-row')].map(r=>[
+    r.querySelector('.e-time').value,
+    r.querySelector('.e-name').value,
+    r.querySelector('.e-cat').value,
+    Number(r.querySelector('.e-min').value||0)
+  ]).filter(x=>x[1].trim());
+  plan[day]=list;
+  localStorage.setItem('rotina.plan',JSON.stringify(plan));
+  selectedDay=day;
+  configDialog.close();
+  render();
+};
+
+resetBtn.onclick=()=>{
+  if(confirm('Restaurar todo o plano original?')){
+    plan=clone(DEFAULT_PLAN);
+    localStorage.setItem('rotina.plan',JSON.stringify(plan));
+    openEditor(editDay.value);
+  }
+};
+
+render();
+const savedPage=localStorage.getItem('rotina.page');
+if(savedPage && document.getElementById(savedPage)) showPage(savedPage);
+</script>
+</body>
+</html>
